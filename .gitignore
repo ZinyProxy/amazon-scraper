@@ -22,7 +22,7 @@ products.jl
 # Scrapy project
 amazon_scraper/__pycache__/
 amazon_scraper/spiders/__pycache__/
-
+.scrapy/
 
 # IDE files
 .vscode/
@@ -38,4 +38,4 @@ logs/
 
 # Environment variables
 .env
-.env.local 
+.env.local
