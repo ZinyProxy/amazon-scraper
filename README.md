@@ -1,124 +1,102 @@
-# Amazon🛒📦
-Amazon Search Scraper — Scrapy (Python)
+# Amazon Search & Product Scraper (Python/Scrapy) 
 
-> Scrape Amazon **search result pages** and **product details** at scale using Scrapy & ScrapeOps.  
-> Extract product URLs, titles, prices, ratings, and detailed product information.
+A complete, ready-to-use Python web scraper built with Scrapy to extract Amazon search results and detailed product metadata at scale. 
 
----
-
-## What It Does
-
-- Crawls **Amazon search result pages** (`/s?k=…&page=…`) for given keywords  
-- Extracts **detailed product information** from individual product pages
-- Extracts comprehensive metadata:
-  - **Title**, **Price**, **Rating**, **Product URL**, **ASIN**, **Review Count**
-  - **Product Details**: Description, Brand, Availability, Seller, Images, Features, Specifications
-- Built-in proxy rotation via ScrapeOps for reliable scraping
-- Structured CSV output with automatic pagination support
-
----
+Most open-source Amazon scrapers fail immediately because Amazon strictly blocks datacenter IPs and local connections. To solve this, this scraper features a custom middleware with a **built-in residential proxy pool** powered by [Ziny.io](https://ziny.io), ensuring your requests bypass CAPTCHAs and anti-bot systems right out of the box.
 
 ## Key Features
 
-- **Search Page Scraper**: Extracts data from Amazon search result listings
-- **Product Detail Scraper**: Gets comprehensive product information
-- Full Scrapy project structure with proper organization
-- Structured CSV output with data validation
-- Plug‑and‑play integrations:
-  - ScrapeOps Proxy SDK for IP rotation and geolocation
-  - ScrapeOps Monitoring SDK for real-time tracking
-  - Multiple output formats: JSON, CSV, XML, JSON Lines
-- Robust error handling with CSS selector fallbacks
-- Automatic pagination through search results
+* **Search Results Crawler (`amazon_search`)**: Scrapes Amazon search pages for specific keywords and extracts Titles, Prices, Ratings, ASINs, and URLs.
+* **Product Detail Crawler (`amazon_product`)**: Navigates directly to product pages to extract comprehensive data including Descriptions, Feature Bullets, Review Counts, and Image URLs.
+* **Built-in Proxy Rotation**: Pre-configured with a free 2GB residential proxy pool so you can test and run the scraper immediately without buying 3rd-party APIs.
+* **Automatic Pagination**: Crawls through multiple pages of search results seamlessly.
+* **Structured CSV Export**: Automatically cleans and exports scraped data into organized `.csv` files.
 
----
+## Prerequisites and Installation
 
-## Repo Structure
+You will need Python 3.7+ installed on your system.
 
 ```bash
-amazon-scrapy-scraper/
-├── amazon_scraper/
-│   ├── spiders/
-│   │   ├── amazon_search.py      
-│   │   └── amazon_product.py
-│   ├── middlewares.py           
-│   ├── items.py                 
-│   ├── pipelines.py                       
-│   └── settings.py                     
-├── scrapy.cfg                    
-├── requirements.txt              
-├── .gitignore                    
-├── LICENSE                      
-└── README.md                   
+git clone [https://github.com/YOUR_GITHUB_USERNAME/amazon-scrapy-scraper.git](https://github.com/YOUR_GITHUB_USERNAME/amazon-scrapy-scraper.git)
+cd amazon-scrapy-scraper
+
+# Create and activate a virtual environment
+python -m venv .venv
+
+# Windows
+.venv\Scripts\Activate.ps1
+# macOS/Linux
+source .venv/bin/activate
+
+# Install the required Python packages
+pip install -r requirements.txt               
 ```
 
 ---
 
 ## Quickstart
 
+Because the proxy rotation is natively handled in the middleware, no complex configuration is required.
+
 ```bash
-git clone https://github.com/Simple-Python-Scrapy-Scrapers/amazon-scrapy-scraper.git
-cd amazon-scrapy-scraper
-
-# Create and activate virtual environment
-python -m venv .venv
-.venv\Scripts\Activate.ps1  # Windows PowerShell
-# source .venv/bin/activate  # macOS/Linux
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Configure API key in amazon_scraper/settings.py:
-# SCRAPEOPS_API_KEY = 'YOUR_SCRAPEOPS_API_KEY'
-
-# Run the spiders:
 cd amazon_scraper
 
-# 1. Search for products
+# Run the search spider to scrape keyword results
 scrapy crawl amazon_search
 
-# 2. Get detailed product information
+# Run the product spider to scrape individual item details
 scrapy crawl amazon_product
 ```
+By default, the spiders save the extracted data into the amazon_scraper/data/ directory with an automatic timestamp.
 
 ---
 
 ## How It Works
 
-### 1. **Search Spider** (`amazon_search`)
-- Uses predefined keyword list (currently set to `['ipad']`)
-- Generates Amazon search URLs for each keyword
-- Extracts basic product information from search listings:
-  - Title, price, rating, ASIN, URL, thumbnail
-  - Ad detection, keyword tracking
-- Uses ScrapeOps Proxy SDK for automatic IP rotation
-- Automatically paginates through search results
+Open amazon_scraper/spiders/amazon_search.py (or amazon_product.py) and modify the keyword_list variable to target your desired niche:
 
-### 2. **Product Detail Spider** (`amazon_product`)
-- Crawls search results then scrapes individual product pages
-- Extracts comprehensive product information:
-  - Product name, price, stars, reviews
-  - Feature bullets, images, variant data
-- Handles multiple product pages simultaneously
-- Robust CSS selectors with fallbacks
+```python
+def start_requests(self):
+    keyword_list = ['gaming laptops', 'mechanical keyboards']
+    for keyword in keyword_list:
+        amazon_search_url = f'[https://www.amazon.com/s?k=](https://www.amazon.com/s?k=){keyword}&page=1'
+        yield scrapy.Request(url=amazon_search_url, callback=self.parse_search_results, meta={'keyword': keyword, 'page': 1})
+```
+##Scaling for Production Use
 
+This tool includes a 200MB free trial pool of residential proxies to get you started. If you plan to scrape Amazon at scale, you will eventually hit the bandwidth limit and experience 403 Forbidden errors.
+To scale up, simply replace the community credentials with your own private keys:
+1.  Create an account at Ziny.io (residential proxies are $0.40/GB).
+2.  Open amazon_scraper/middlewares.py.
+3.  Update the proxy_user and proxy_pass variables with your specific Ziny credentials.
 ---
 
-## Example Output
+##Repository Architecture
+
+```bash
+amazon-scrapy-scraper/
+├── amazon_scraper/
+│   ├── spiders/
+│   │   ├── amazon_search.py      # Search page logic
+│   │   └── amazon_product.py     # Product detail logic
+│   ├── middlewares.py            # Custom Proxy Routing logic
+│   ├── items.py                 
+│   ├── pipelines.py                       
+│   └── settings.py               # Scrapy configuration      
+├── scrapy.cfg                    
+├── requirements.txt              
+├── .gitignore                    
+├── LICENSE                      
+└── README.md
+```
+
+## Example Data Output
 
 ### Search Results (CSV)
 ```csv
 keyword,asin,url,ad,title,price,rating,rating_count,thumbnail_url
-ipad,B09G9FPHY6,https://www.amazon.com/dp/B09G9FPHY6,False,iPad (10th generation),$449.00,4.7 out of 5 stars,12,345,https://m.media-amazon.com/images/I/71...
+ipad,B09G9FPHY6,[https://www.amazon.com/dp/B09G9FPHY6,False,iPad](https://www.amazon.com/dp/B09G9FPHY6,False,iPad) (10th generation),$449.00,4.7 out of 5 stars,12,345,[https://m.media-amazon.com/images/I/71](https://m.media-amazon.com/images/I/71)...
 ```
-
-### Product Details (CSV)
-```csv
-name,price,stars,rating_count,feature_bullets,images,variant_data
-iPad (10th generation),$449.00,4.7 out of 5 stars,12,345,"['10.9-inch Liquid Retina display', 'A14 Bionic chip']",[...],{...}
-```
-
----
 
 ## Config & Scaling
 
@@ -130,7 +108,7 @@ Edit the spider files to change search terms:
 def start_requests(self):
     keyword_list = ['your', 'keywords', 'here']
     for keyword in keyword_list:
-        amazon_search_url = f'https://www.amazon.com/s?k={keyword}&page=1'
+        amazon_search_url = f'[https://www.amazon.com/s?k=](https://www.amazon.com/s?k=){keyword}&page=1'
         yield scrapy.Request(url=amazon_search_url, callback=self.parse_search_results, meta={'keyword': keyword, 'page': 1})
 ```
 
@@ -144,18 +122,21 @@ custom_settings = {
 ```
 
 ### Geolocation
-Change the country in `amazon_scraper/settings.py`:
+If you need to scrape Amazon UK or Amazon DE, you can target specific country IPs by modifying your Ziny.io username in `middlewares.py`:. Add the country code to your proxy username format based on your Ziny dashboard instructions (e.g., appending -country-uk to the user).
+
+Concurrency & Rate Limiting
+Because you are using residential proxies, you can scrape significantly faster without getting blocked. Adjust your concurrency in `amazon_scraper/settings.py`:
 
 ```python
 SCRAPEOPS_PROXY_SETTINGS = {'country': 'us'}  # us, uk, ca, de, etc.
 ```
 
 ### Concurrency & Rate Limiting
-Adjust in `amazon_scraper/settings.py`:
+Because you are using residential proxies, you can scrape significantly faster without getting blocked. Adjust your concurrency in `amazon_scraper/settings.py`:
 
 ```python
-CONCURRENT_REQUESTS = 1  # Free ScrapeOps plan limit
-# CONCURRENT_REQUESTS = 10  # Paid plan
+CONCURRENT_REQUESTS = 10  # Optimized for Ziny residential proxies
+DOWNLOAD_DELAY = 0.5      # Add a slight delay to be safe
 ```
 
 ---
@@ -187,24 +168,21 @@ In Pipeline
 
 ## Built With
 
-- Scrapy (Python)
-- ScrapeOps Proxy SDK + Monitoring SDK
-- Based on `python-scrapy-playbook/amazon-python-scrapy-scraper`
-
+Scrapy (Python)
+Ziny Proxy | https://ziny.io/
 ---
 
 ## 📚 Dependencies
 
-- **scrapy**: Web scraping framework
-- **scrapeops-scrapy-proxy-sdk**: Proxy rotation and geolocation
-- **scrapeops-scrapy**: Monitoring and analytics
+- **scrapy:** Web scraping framework
+- **base64:** For proxy authentication encoding (Built-in Python library)
 
 ## 🆘 Troubleshooting
 
-### No Products Found
-1. Check your ScrapeOps API key is valid in `amazon_scraper/settings.py`
-2. Run with debug logging: `scrapy crawl amazon_search -L DEBUG`
-3. Try different search terms
+### No Products Found / 403 Errors
+1.  Bandwidth Exceeded: The 200MB community proxy pool may be exhausted. You will need to replace the trial credentials in amazon_scraper/middlewares.py with your own Ziny.io keys.
+2.  Debug Mode: Run with debug logging to see what is failing: scrapy crawl amazon_search -L DEBUG
+3.  Invalid Selectors: Amazon occasionally updates their HTML structure. You may need to update the CSS selectors in the spider files.
 
 ### Virtual Environment Issues
 ```bash
@@ -223,34 +201,8 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 ---
 
-## 🔧 Enhanced ScrapeOps Integrations
 
-### 📊 Free Monitoring Solution
-Add real-time monitoring and scheduling to your scraper:
-- [ScrapeOps Monitoring SDK](https://scrapeops.io/docs/monitoring/python-scrapy/sdk-integration/)
-- [Monitoring Dashboard](https://scrapeops.io/monitoring-scheduling/)
-
-### 🌐 Improved Proxy Integration
-Use Scrapy Proxy SDK for better reliability:
-- [ScrapeOps Proxy SDK](https://scrapeops.io/docs/web-scraping-proxy-api-aggregator/integration-examples/python-scrapy-example/)
-- Solves issues with URL format changing in certain use cases
-
-### 🔍 Amazon Website Analysis
-Learn more about scraping Amazon effectively:
-- [Amazon Website Analyzer](https://scrapeops.io/websites/amazon)
-
----
-
-## 📖 Development Guides
-
-The following articles go through in detail how these Amazon spiders were developed:
-
-- [Python Scrapy: Build A Amazon.com Product Scraper](https://scrapeops.io/python-scrapy-playbook/python-scrapy-amazon-product-scraper/)
-- [Python Scrapy: Build A Amazon.com Product Reviews Scraper](https://scrapeops.io/python-scrapy-playbook/python-scrapy-amazon-reviews-scraper/)
-
----
-
-## 🎯 Migration Benefits
+## Migration Benefits
 
 This project evolved from a simple single-file spider to a professional Scrapy structure:
 
@@ -264,10 +216,10 @@ This project evolved from a simple single-file spider to a professional Scrapy s
 
 ## 🚀 Next Steps
 
-1. **Get ScrapeOps API Key**: [Sign up here](https://scrapeops.io/app/register/main)
-2. **Test Spiders**: Run each spider individually
-3. **Customize Data**: Modify extraction logic as needed
-4. **Scale Up**: Upgrade ScrapeOps plan for higher concurrency
-5. **Add Features**: Implement additional spiders or data processing
+1.  Get Unlimited Proxies: Sign up at Ziny.io to get ultra-cheap residential proxies ($0.40/GB).
+2.  Test Spiders: Run each spider individually to see the proxy rotation in action.
+3.  Customize Data: Modify extraction logic as needed to pull specific metrics.
+4.  Scale Up: Increase the CONCURRENT_REQUESTS in your Scrapy settings for maximum speed.
+5.  Add Features: Implement additional spiders or data processing pipelines.
 
-The implementation provides a solid foundation for professional Amazon scraping with clean, maintainable code and robust infrastructure.
+The implementation provides a solid foundation for professional Amazon scraping with clean, maintainable code and robust infrastructure powered by Ziny Proxy
