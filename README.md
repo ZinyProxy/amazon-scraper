@@ -1,4 +1,5 @@
-# 🛍️ Amazon Search Scraper — Scrapy (Python)
+# Amazon🛒📦
+Amazon Search Scraper — Scrapy (Python)
 
 > Scrape Amazon **search result pages** and **product details** at scale using Scrapy & ScrapeOps.  
 > Extract product URLs, titles, prices, ratings, and detailed product information.
