@@ -169,7 +169,7 @@ In Pipeline
 ## Built With
 
 - Scrapy (Python)
-- Ziny Proxy | https://ziny.io/
+- [Ziny Proxy](https://ziny.io)
 ---
 
 ## Dependencies
