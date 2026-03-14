@@ -168,16 +168,16 @@ In Pipeline
 
 ## Built With
 
-Scrapy (Python)
-Ziny Proxy | https://ziny.io/
+- Scrapy (Python)
+- Ziny Proxy | https://ziny.io/
 ---
 
-## 📚 Dependencies
+## Dependencies
 
 - **scrapy:** Web scraping framework
 - **base64:** For proxy authentication encoding (Built-in Python library)
 
-## 🆘 Troubleshooting
+## Troubleshooting
 
 ### No Products Found / 403 Errors
 1.  Bandwidth Exceeded: The 200MB community proxy pool may be exhausted. You will need to replace the trial credentials in amazon_scraper/middlewares.py with your own Ziny.io keys.
